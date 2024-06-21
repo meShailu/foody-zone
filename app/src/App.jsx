@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useDebugValue, useState } from "react";
 import styled from "styled-components";
 import { useEffect } from "react";
 import SearchResult from "./components/SearchResults/SearchResult";
@@ -9,6 +9,7 @@ const App = () => {
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [filteredData, setFilteredData] = useState(null);
 
   useEffect(() => {
     async function fetchFoodData() {
@@ -17,6 +18,7 @@ const App = () => {
         const res = await fetch(BASE_URL);
         const json = await res.json();
         setData(json);
+        setFilteredData(json);
         setIsLoading(false);
       } catch (error) {
         setError("Unable to fetch data");
@@ -26,7 +28,19 @@ const App = () => {
     fetchFoodData();
   }, []);
 
-  console.log(data);
+  const searchFood = (e) => {
+    const searchValue = e.target.value;
+    console.log(searchValue);
+
+    if (searchValue === "") {
+      setFilteredData(null);
+    }
+
+    const filter = data?.filter((food) =>
+      food.name.toLowerCase().includes(searchValue.toLowerCase())
+    );
+    setFilteredData(filter);
+  };
 
   if (error) return <div>{error}</div>;
   if (isLoading) return <div>loading...</div>;
@@ -40,7 +54,7 @@ const App = () => {
           </div>
 
           <div className="search">
-            <input placeholder="Search Food" />
+            <input onChange={searchFood} placeholder="Search Food" />
           </div>
         </TopContainer>
         <FilterContainer>
@@ -50,7 +64,7 @@ const App = () => {
           <Button>Dinner</Button>
         </FilterContainer>
       </Container>
-      <SearchResult data={data} />
+      <SearchResult data={filteredData} />
     </>
   );
 };
